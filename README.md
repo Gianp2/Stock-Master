@@ -17,13 +17,11 @@ Perfecto, acá tenés el README completo en un solo bloque, listo para copiar y 
    ```bash
    git clone https://github.com/Gianp2/Stock-Master.git
    cd Stock-Master
-````
 
 2. Instala las dependencias:
 
    ```bash
    npm install
-   ```
 
 3. Configura las variables de entorno:
 
@@ -34,7 +32,6 @@ Perfecto, acá tenés el README completo en un solo bloque, listo para copiar y 
 
    ```bash
    npm start
-   ```
 
 5. Abre tu navegador en:
    `http://localhost:3000`
@@ -54,7 +51,6 @@ Perfecto, acá tenés el README completo en un solo bloque, listo para copiar y 
 
    ```bash
    git checkout -b feature/nombre
-   ```
 
 3. Realizá los cambios y asegurate de que todo funcione correctamente
 
