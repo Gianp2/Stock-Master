@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockMaster - Manejador de Stock</title>
+  <style>
+    .sidebar {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-right: 1px solid #dee2e6;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      width: 250px;
+      transition: transform 0.2s ease-in-out;
+    }
+    .sidebar.hidden {
+      transform: translateX(-550px);
+    }
+    .login-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .login-card .form-control {
+      margin-bottom: 15px;
+    }
+    .main-content {
+      padding: 20px;
+      transition: margin-left 0.3s ease-in-out;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      min-height: calc(100vh - 80px);
+    }
+    .grid-container.sidebar-hidden .main-content {
+      margin-left: 0;
+    }
+    .toggle-sidebar-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+    }
+    @media (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: fixed;
+        z-index: 999;
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid #dee2e6;
+        transform: translateX(-100%);
+      }
+      .sidebar.hidden {
+        transform: translateX(-100%);
+      }
+      .sidebar:not(.hidden) {
+        transform: translateX(0);
+      }
+      .main-content {
+        margin-left: 0 !important;
+      }
+      .toggle-sidebar-btn {
+        left: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+<header class="bg-gradient-to-r from-primary-600 to-primary-800 text-white text-center py-4 mb-6 shadow-lg position-relative">    
+  <button class="btn btn-light toggle-sidebar-btn" id="toggle-sidebar" aria-label="Alternar barra lateral">
+    <i class="bi bi-list"></i>
+  </button>
+  <h1>Stock-Master</h1>
+</header>
+
+<div class="grid-container" id="grid-container">
+  <!-- Sidebar with Login Form -->
+  <div class="sidebar" id="sidebar">
+    <div class="login-card">
+      <h4 class="mb-4 text-center">Iniciar Sesión</h4>
+      <form id="login-form" class="d-flex flex-column gap-2">
+        <input type="text" id="login-username" class="form-control" placeholder="Usuario" required>
+        <input type="password" id="login-password" class="form-control" placeholder="Contraseña" required>
+        <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+      </form>
+      <div id="login-status" class="mt-2 text-center"></div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="container">
+      <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#productModal" aria-label="Agregar nuevo producto">
+        <i class="bi bi-plus-circle"></i> Agregar Producto
+      </button>
+
+      <!-- Modal para formulario -->
+      <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 class="modal-title" id="productModalLabel">Agregar Producto</h3>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+              <form id="product-form">
+                <div class="mb-3">
+                  <input type="text" id="name" class="form-control" placeholder="Nombre" required aria-describedby="nameError" />
+                  <div id="nameError" class="invalid-feedback"></div>
+                </div>
+                <div class="mb-3">
+                  <input type="text" id="category" class="form-control" placeholder="Categoría" required aria-describedby="categoryError" />
+                  <div id="categoryError" class="invalid-feedback"></div>
+                </div>
+                <div class="mb-3">
+                  <input type="number" id="stock" class="form-control" placeholder="Stock" required min="0" aria-describedby="stockError" />
+                  <div id="stockError" class="invalid-feedback"></div>
+                </div>
+                <div class="mb-3">
+                  <input type="number" id="min_stock" class="form-control" placeholder="Stock mínimo" required min="0" aria-describedby="minStockError" />
+                  <div id="minStockError" class="invalid-feedback"></div>
+                </div>
+                <div class="mb-3">
+                  <input type="number" id="price" class="form-control" placeholder="Precio" required min="0" step="0.01" aria-describedby="priceError" />
+                  <div id="priceError" class="invalid-feedback"></div>
+                </div>
+                <div class="mb-3">
+                  <input type="text" id="supplier" class="form-control" placeholder="Proveedor" required aria-describedby="supplierError" />
+                  <div id="supplierError" class="invalid-feedback"></div>
+                </div>
+                <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Agregar</button>
+                <button type="button" id="cancel-edit" class="btn btn-secondary" style="display: none;"><i class="bi bi-x-circle"></i> Cancelar</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal para confirmación de eliminación -->
+      <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 class="modal-title" id="deleteConfirmModalLabel">Confirmar Eliminación</h3>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+              ¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="button" id="confirm-delete" class="btn btn-danger">Eliminar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal para confirmación de limpieza de historial -->
+      <div class="modal fade" id="clearHistoryModal" tabindex="-1" aria-labelledby="clearHistoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 class="modal-title" id="clearHistoryModalLabel">Confirmar Limpieza de Historial</h3>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+              ¿Estás seguro de que deseas limpiar todo el historial de cambios? Esta acción no se puede deshacer.
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="button" id="confirm-clear-history" class="btn btn-danger">Limpiar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="mb-3">Filtros y Orden</h3>
+      <div class="mb-3">
+        <input type="text" id="search-input" class="form-control" placeholder="Buscar por nombre, categoría o proveedor" aria-label="Buscar productos" />
+      </div>
+      <div class="mb-3 d-flex gap-2">
+        <select id="sort-select" class="form-select" aria-label="Ordenar productos">
+          <optgroup label="Ordenar por Nombre">
+            <option value="name-asc">Nombre: A-Z</option>
+            <option value="name-desc">Nombre: Z-A</option>
+          </optgroup>
+          <optgroup label="Ordenar por Precio">
+            <option value="price-asc">Precio: Menor a Mayor</option>
+            <option value="price-desc">Precio: Mayor a Menor</option>
+          </optgroup>
+          <optgroup label="Ordenar por Stock">
+            <option value="stock-asc">Stock: Menor a Mayor</option>
+            <option value="stock-desc">Stock: Mayor a Menor</option>
+          </optgroup>
+        </select>
+        <button id="export-csv" class="btn btn-info"><i class="bi bi-download"></i> Exportar a CSV</button>
+        <button id="import-csv-btn" class="btn btn-info" onclick="document.getElementById('import-csv').click();"><i class="bi bi-upload"></i> Importar CSV</button>
+        <input type="file" id="import-csv" accept=".csv" style="display: none;" aria-label="Importar archivo CSV" />
+      </div>
+
+      <div id="notification-container" aria-live="polite"></div>
+
+      <h2 class="mb-3">Productos</h2>
+      <ul id="product-list" role="list" class="list-group"></ul>
+
+      <div class="pagination d-flex justify-content-center gap-2 mt-3">
+        <button id="prev-page" class="btn btn-primary" disabled aria-label="Página anterior">Anterior</button>
+        <span id="page-info" aria-live="polite" class="my-auto"></span>
+        <button id="next-page" class="btn btn-primary" aria-label="Página siguiente">Siguiente</button>
+      </div>
+
+      <h3 class="mt-4 mb-3">Estadísticas</h3>
+      <div class="charts-container row g-3">
+        <div class="col-md-6">
+          <canvas id="stock-chart" role="img" aria-label="Gráfico de barras de stock por producto"></canvas>
+        </div>
+        <div class="col-md-6">
+          <canvas id="category-chart" role="img" aria-label="Gráfico de pastel de distribución por categoría"></canvas>
+        </div>
+      </div>
+
+      <h3 class="mt-4 mb-3 d-flex justify-content-between align-items-center">
+        Historial de Cambios
+        <button id="clear-history" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#clearHistoryModal" aria-label="Limpiar historial de cambios"><i class="bi bi-trash"></i> Limpiar Historial</button>
+      </h3>
+      <div id="history-log" class="history-log" role="log" aria-live="polite"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const apiUrl = 'http://localhost:3000/api/products';
+  let productsCache = [];
+  let currentPage = 1;
+  const productsPerPage = 5;
+  let stockChart, categoryChart;
+  let deleteProductId = null;
+
+  // Cargar historial desde localStorage
+  let changeHistory = JSON.parse(localStorage.getItem('changeHistory')) || [];
+
+  // Función para mostrar notificaciones
+  function showNotification(message, type) {
+    const container = document.getElementById('notification-container');
+    const notification = document.createElement('div');
+    notification.className = `notification alert alert-${type} alert-dismissible fade show`;
+    notification.role = 'alert';
+    notification.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    container.appendChild(notification);
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => notification.remove(), 150);
+    }, 3000);
+  }
+
+  // Validación en tiempo real
+ function validateInput(input, errorId, message) {
+    const errorElement = document.getElementById(errorId);
+    if (input.validity.valid) {
+      input.classList.remove('is-invalid');
+      errorElement.textContent = '';
+    } else {
+      input.classList.add('is-invalid');
+      errorElement.textContent = message;
+    }
+  }
+
+  // Configurar validación
+  function setupFormValidation() {
+    const inputs = [
+      { id: 'name', errorId: 'nameError', message: 'El nombre es obligatorio.' },
+      { id: 'category', errorId: 'categoryError', message: 'La categoría es obligatoria.' },
+      { id: 'stock', errorId: 'stockError', message: 'El stock debe ser un número mayor o igual a 0.' },
+      { id: 'min_stock', errorId: 'minStockError', message: 'El stock mínimo debe ser mayor o igual a 0.' },
+      { id: 'price', errorId: 'priceError', message: 'El precio debe ser un número positivo.' },
+      { id: 'supplier', errorId: 'supplierError', message: 'El proveedor es obligatorio.' }
+    ];
+
+    inputs.forEach(({ id, errorId, message }) => {
+      const input = document.getElementById(id);
+      input.addEventListener('input', () => validateInput(input, errorId, message));
+    });
+  }
+
+  // Función para actualizar gráficos
+  function updateCharts(products) {
+    const stockData = {
+      labels: products.map(p => p.name),
+      datasets: [{
+        label: 'Stock por Producto',
+        data: products.map(p => p.stock),
+        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 2,
+        borderRadius: 5,
+        barThickness: 20
+      }]
+    };
+
+    if (stockChart) stockChart.destroy();
+    stockChart = new Chart(document.getElementById('stock-chart'), {
+      type: 'bar',
+      data: stockData,
+      options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Stock' } } },
+        plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } },
+        animation: { duration: 1000, easing: 'easeInOutQuad' }
+      }
+    });
+
+    const categoryCounts = products.reduce((acc, p) => {
+      acc[p.category] = (acc[p.category] || 0) + 1;
+      return acc;
+    }, {});
+    const categoryData = {
+      labels: Object.keys(categoryCounts),
+      datasets: [{
+        label: 'Distribución por Categoría',
+        data: Object.values(categoryCounts),
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.7)',
+          'rgba(54, 162, 235, 0.7)',
+          'rgba(255, 206, 86, 0.7)',
+          'rgba(75, 192, 192, 0.7)',
+          'rgba(153, 102, 255, 0.7)'
+        ],
+        borderWidth: 1,
+        borderColor: '#fff'
+      }]
+    };
+
+    if (categoryChart) categoryChart.destroy();
+    categoryChart = new Chart(document.getElementById('category-chart'), {
+      type: 'pie',
+      data: categoryData,
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'right' }, tooltip: { mode: 'point' } },
+        animation: { animateRotate: true, animateScale: true }
+      }
+    });
+  }
+
+  // Función para guardar en el historial
+  function logChange(action, product) {
+    const logEntry = {
+      timestamp: new Date().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }),
+      action,
+      product: { ...product }
+    };
+    changeHistory.push(logEntry);
+    localStorage.setItem('changeHistory', JSON.stringify(changeHistory));
+    displayHistory();
+  }
+
+  // Función para mostrar historial
+  function displayHistory() {
+    const historyDiv = document.getElementById('history-log');
+    historyDiv.innerHTML = '';
+    if (changeHistory.length === 0) {
+      historyDiv.innerHTML = '<p class="text-muted">No hay cambios registrados.</p>';
+      return;
+    }
+    changeHistory.forEach(entry => {
+      const card = document.createElement('div');
+      card.className = 'card mb-2 shadow-sm';
+      const actionColor = entry.action === 'Creado' || entry.action === 'Creado (Importado)' ? 'text-success' : 
+                         entry.action === 'Actualizado' ? 'text-primary' : 'text-danger';
+      card.innerHTML = `
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="card-subtitle mb-2 text-muted">${entry.timestamp}</h6>
+            <span class="badge ${actionColor}">${entry.action}</span>
+          </div>
+          <p class="card-text mb-1"><strong>Producto:</strong> ${entry.product.name}</p>
+          <p class="card-text mb-1"><strong>Categoría:</strong> ${entry.product.category}</p>
+          <p class="card-text mb-1"><strong>Stock:</strong> ${entry.product.stock} (Mínimo: ${entry.product.min_stock})</p>
+          <p class="card-text mb-1"><strong>Precio:</strong> $${entry.product.price.toFixed(2)}</p>
+          <p class="card-text"><strong>Proveedor:</strong> ${entry.product.supplier}</p>
+        </div>
+      `;
+      historyDiv.appendChild(card);
+    });
+  }
+
+  // Función para limpiar historial
+  function clearHistory() {
+    changeHistory = [];
+    localStorage.removeItem('changeHistory');
+    displayHistory();
+    showNotification('Historial limpiado con éxito', 'success');
+  }
+
+  // Función para filtrar productos
+  function filterProducts(products, query) {
+    query = query.toLowerCase().trim();
+    if (!query) return products;
+    return products.filter(prod =>
+      prod.name.toLowerCase().includes(query) ||
+      prod.category.toLowerCase().includes(query) ||
+      prod.supplier.toLowerCase().includes(query)
+    );
+  }
+
+  // Función para ordenar productos
+  function sortProducts(products, criteria) {
+    const sorted = [...products];
+    const [field, direction] = criteria.split('-');
+    sorted.sort((a, b) => {
+      if (field === 'name') {
+        return direction === 'asc'
+          ? a.name.localeCompare(b.name, 'es', { sensitivity: 'base' })
+          : b.name.localeCompare(a.name, 'es', { sensitivity: 'base' });
+      } else {
+        return direction === 'asc'
+          ? a[field] - b[field]
+          : b[field] - a[field];
+      }
+    });
+    return sorted;
+  }
+
+  // Función para mostrar productos con paginación
+  function displayProducts(products) {
+    const list = document.getElementById('product-list');
+    list.innerHTML = '';
+
+    const start = (currentPage - 1) * productsPerPage;
+    const end = start + productsPerPage;
+    const paginatedProducts = products.slice(start, end);
+
+    paginatedProducts.forEach(prod => {
+      const li = document.createElement('li');
+      li.className = 'list-group-item d-flex justify-content-between align-items-center';
+      li.innerHTML = `
+        ${prod.stock < prod.min_stock ? '<i class="bi bi-exclamation-triangle text-danger me-2" title="Bajo stock"></i>' : ''}
+        <span>${prod.name} - Stock: ${prod.stock} - Precio: $${prod.price.toFixed(2)}</span>
+      `;
+      if (prod.stock < prod.min_stock) {
+        li.classList.add('low-stock');
+      }
+
+      const btnGroup = document.createElement('div');
+      btnGroup.className = 'btn-group';
+
+      const btnEdit = document.createElement('button');
+      btnEdit.innerHTML = '<i class="bi bi-pencil"></i> Editar';
+      btnEdit.className = 'btn btn-primary btn-sm';
+      btnEdit.setAttribute('aria-label', `Editar ${prod.name}`);
+      btnEdit.onclick = () => {
+        document.getElementById('name').value = prod.name;
+        document.getElementById('category').value = prod.category;
+        document.getElementById('stock').value = prod.stock;
+        document.getElementById('min_stock').value = prod.min_stock;
+        document.getElementById('price').value = prod.price;
+        document.getElementById('supplier').value = prod.supplier;
+        window.editingProductId = prod.id;
+        document.querySelector('#product-form button[type="submit"]').innerHTML = '<i class="bi bi-check-circle"></i> Actualizar';
+        document.getElementById('cancel-edit').style.display = 'inline-block';
+        document.getElementById('productModalLabel').textContent = 'Editar Producto';
+        new bootstrap.Modal(document.getElementById('productModal')).show();
+      };
+
+      const btnDelete = document.createElement('button');
+      btnDelete.innerHTML = '<i class="bi bi-trash"></i> Eliminar';
+      btnDelete.className = 'btn btn-danger btn-sm';
+      btnDelete.setAttribute('aria-label', `Eliminar ${prod.name}`);
+      btnDelete.onclick = () => {
+        deleteProductId = prod.id;
+        new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+      };
+
+      btnGroup.appendChild(btnEdit);
+      btnGroup.appendChild(btnDelete);
+      li.appendChild(btnGroup);
+      list.appendChild(li);
+    });
+
+    document.getElementById('page-info').textContent = `Página ${currentPage} de ${Math.ceil(products.length / productsPerPage)}`;
+    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = end >= products.length;
+
+    updateCharts(products);
+  }
+
+  // Función para obtener y mostrar productos
+  async function fetchAndDisplayProducts() {
+    try {
+      const res = await fetch(apiUrl);
+      if (!res.ok) throw new Error('Error al obtener productos');
+      productsCache = await res.json();
+
+      const query = document.getElementById('search-input').value;
+      const criteria = document.getElementById('sort-select').value;
+      let filteredProducts = filterProducts(productsCache, query);
+      const sortedProducts = sortProducts(filteredProducts, criteria);
+      displayProducts(sortedProducts);
+    } catch (err) {
+      showNotification(err.message, 'danger');
+    }
+  }
+
+  // Manejar búsqueda
+  document.getElementById('search-input').addEventListener('input', () => {
+    currentPage = 1;
+    fetchAndDisplayProducts();
+  });
+
+  // Manejar ordenamiento
+  document.getElementById('sort-select').addEventListener('change', () => {
+    currentPage = 1;
+    fetchAndDisplayProducts();
+  });
+
+  // Manejar paginación
+  document.getElementById('prev-page').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      fetchAndDisplayProducts();
+    }
+  });
+
+  document.getElementById('next-page').addEventListener('click', () => {
+    currentPage++;
+    fetchAndDisplayProducts();
+  });
+
+  // Manejar formulario
+  document.getElementById('product-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const form = e.target;
+
+    if (!form.checkValidity()) {
+      form.classList.add('was-validated');
+      return;
+    }
+
+    const newProduct = {
+      name: document.getElementById('name').value.trim(),
+      category: document.getElementById('category').value.trim(),
+      stock: Number(document.getElementById('stock').value),
+      min_stock: Number(document.getElementById('min_stock').value),
+      price: Number(document.getElementById('price').value),
+      supplier: document.getElementById('supplier').value.trim(),
+    };
+
+    try {
+      if (window.editingProductId) {
+        const res = await fetch(`${apiUrl}/${window.editingProductId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newProduct),
+        });
+        if (!res.ok) throw new Error('Error al actualizar producto');
+        showNotification('Producto actualizado con éxito', 'success');
+        logChange('Actualizado', newProduct);
+        window.editingProductId = null;
+        document.querySelector('#product-form button[type="submit"]').innerHTML = '<i class="bi bi-check-circle"></i> Agregar';
+        document.getElementById('cancel-edit').style.display = 'none';
+        document.getElementById('productModalLabel').textContent = 'Agregar Producto';
+      } else {
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newProduct),
+        });
+        if (!res.ok) throw new Error('Error al crear producto');
+        showNotification('Producto agregado con éxito', 'success');
+        logChange('Creado', newProduct);
+      }
+
+      form.reset();
+      form.classList.remove('was-validated');
+      bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+      currentPage = 1;
+      await fetchAndDisplayProducts();
+    } catch (err) {
+      showNotification(err.message, 'danger');
+    }
+  });
+
+  // Manejar botón Cancelar
+  document.getElementById('cancel-edit').addEventListener('click', () => {
+    window.editingProductId = null;
+    const form = document.getElementById('product-form');
+    form.reset();
+    form.classList.remove('was-validated');
+    document.querySelector('#product-form button[type="submit"]').innerHTML = '<i class="bi bi-check-circle"></i> Agregar';
+    document.getElementById('cancel-edit').style.display = 'none';
+    document.getElementById('productModalLabel').textContent = 'Agregar Producto';
+    bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+  });
+
+  // Manejar eliminación confirmada
+  document.getElementById('confirm-delete').addEventListener('click', async () => {
+    if (!deleteProductId) return;
+    try {
+      const resDelete = await fetch(`${apiUrl}/${deleteProductId}`, { method: 'DELETE' });
+      if (!resDelete.ok) throw new Error('Error al eliminar');
+      showNotification('Producto eliminado con éxito', 'success');
+      logChange('Eliminado', productsCache.find(p => p.id === deleteProductId));
+      bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+      deleteProductId = null;
+      await fetchAndDisplayProducts();
+    } catch (err) {
+      showNotification(err.message, 'danger');
+    }
+  });
+
+  // Manejar limpieza de historial
+  document.getElementById('confirm-clear-history').addEventListener('click', () => {
+    clearHistory();
+    bootstrap.Modal.getInstance(document.getElementById('clearHistoryModal')).hide();
+  });
+
+  // Importar CSV
+  document.getElementById('import-csv').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const text = event.target.result;
+      const rows = text.split('\n').slice(1); // Ignorar encabezado
+      const products = rows.map(row => {
+        const [id, name, category, stock, min_stock, price, supplier] = row.split(',');
+        return {
+          name: name?.trim(),
+          category: category?.trim(),
+          stock: Number(stock),
+          min_stock: Number(min_stock),
+          price: Number(price),
+          supplier: supplier?.trim()
+        };
+      }).filter(p => p.name && !isNaN(p.stock) && !isNaN(p.min_stock) && !isNaN(p.price) && p.supplier);
+
+      try {
+        for (const product of products) {
+          const res = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(product),
+          });
+          if (!res.ok) throw new Error('Error al importar producto');
+          logChange('Creado (Importado)', product);
+        }
+        showNotification(`${products.length} productos importados con éxito`, 'success');
+        e.target.value = '';
+        await fetchAndDisplayProducts();
+      } catch (err) {
+        showNotification(err.message, 'danger');
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // Exportar a CSV
+  document.getElementById('export-csv').addEventListener('click', () => {
+    const headers = ['ID,Nombre,Categoría,Stock,Stock Mínimo,Precio,Proveedor'];
+    const rows = productsCache.map(prod =>
+      `${prod.id},${prod.name},${prod.category},${prod.stock},${prod.min_stock},${prod.price},${prod.supplier}`
+    );
+    const csvContent = headers.concat(rows).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'stockmaster_export.csv';
+    link.click();
+    showNotification('Productos exportados a CSV', 'success');
+  });
+
+  // Manejar alternancia de la barra lateral
+  document.getElementById('toggle-sidebar').addEventListener('click', () => {
+    const sidebar = document.getElementById('sidebar');
+    const gridContainer = document.getElementById('grid-container');
+    sidebar.classList.toggle('hidden');
+    gridContainer.classList.toggle('sidebar-hidden');
+  });
+
+  // Inicializar
+  setupFormValidation();
+  fetchAndDisplayProducts();
+  displayHistory();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
