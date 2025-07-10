@@ -1,55 +1,61 @@
-Stock Master
-Stock Master es una aplicación web diseñada para visualizar y seguir en tiempo real las tendencias de precios de acciones de empresas de interés. Permite a los usuarios agregar y eliminar símbolos bursátiles, mostrando gráficos actualizados de su comportamiento en el mercado.
+Perfecto, acá tenés el README completo en un solo bloque, listo para copiar y pegar directamente en GitHub, sin separaciones entre secciones:
 
-🚀 Descripción
-Esta herramienta es ideal para quienes desean monitorear el rendimiento de acciones específicas sin complicaciones. La interfaz es sencilla y permite una interacción en tiempo real con los datos del mercado.
+# 📈 Stock Master
 
-🛠️ Tecnologías utilizadas
-Frontend: HTML, CSS, JavaScript
+**Stock Master** es una aplicación web intuitiva y dinámica que permite visualizar en tiempo real las tendencias de precios de acciones de empresas seleccionadas. Ofrece una experiencia fluida para seguir el mercado bursátil, ideal tanto para inversores ocasionales como para entusiastas financieros.
 
-Backend: Node.js
+**Descripción:** Stock Master está diseñada para brindar un monitoreo ágil y sin complicaciones del comportamiento del mercado. Su interfaz limpia permite a los usuarios agregar y eliminar símbolos bursátiles, visualizando gráficos interactivos que se actualizan automáticamente con los últimos datos del mercado.
 
-Base de datos: MongoDB
+**Tecnologías utilizadas:**  
+- Frontend: HTML, CSS, JavaScript  
+- Backend: Node.js  
+- Base de datos: MongoDB
 
-📦 Instalación y uso local
-Clona el repositorio:
+**Instalación y uso local:**  
+1. Clona el repositorio:
 
-bash
-Copiar código
-git clone https://github.com/Gianp2/Stock-Master.git
-cd Stock-Master
-Instala las dependencias:
+   ```bash
+   git clone https://github.com/Gianp2/Stock-Master.git
+   cd Stock-Master
+````
 
-bash
-Copiar código
-npm install
-Configura las variables de entorno:
+2. Instala las dependencias:
 
-Renombra el archivo .env.sample a .env.
+   ```bash
+   npm install
+   ```
 
-Completa las variables necesarias, como las credenciales de la base de datos.
+3. Configura las variables de entorno:
 
-Inicia la aplicación:
+   * Renombra el archivo `.env.sample` a `.env`
+   * Completa las variables necesarias, como la URI de MongoDB y claves de API si es necesario
 
-bash
-Copiar código
-npm start
-La aplicación estará disponible en http://localhost:3000.
+4. Inicia la aplicación:
 
-📊 Funcionalidades
-Visualización de tendencias: Gráficos interactivos que muestran la evolución de los precios de las acciones.
+   ```bash
+   npm start
+   ```
 
-Gestión de símbolos: Agrega o elimina símbolos bursátiles para personalizar tu seguimiento.
+5. Abre tu navegador en:
+   `http://localhost:3000`
 
-Actualización en tiempo real: Los gráficos se actualizan automáticamente con los datos más recientes del mercado.
+**Funcionalidades principales:**
 
-🤝 Contribuciones
-Las contribuciones son bienvenidas. Si deseas mejorar el proyecto, por favor:
+* 📉 Visualización en tiempo real: Gráficos interactivos que muestran el comportamiento de las acciones minuto a minuto.
+* ➕ Gestión de símbolos bursátiles: Agrega o elimina empresas fácilmente para personalizar el seguimiento.
+* 🔄 Actualización automática: Datos del mercado actualizados en tiempo real sin necesidad de recargar.
 
-Realiza un fork del repositorio.
+**Contribuciones:**
+¡Las contribuciones son bienvenidas! Para colaborar:
 
-Crea una nueva rama para tu funcionalidad o corrección.
+1. Realizá un fork del repositorio
 
-Realiza tus cambios y asegúrate de que las pruebas pasen.
+2. Creá una nueva rama para tu funcionalidad o corrección:
 
-Envía un pull request detallando tus modificaciones.
+   ```bash
+   git checkout -b feature/nombre
+   ```
+
+3. Realizá los cambios y asegurate de que todo funcione correctamente
+
+4. Enviá un pull request explicando los cambios realizados
