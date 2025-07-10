@@ -1,5 +1,3 @@
-Perfecto, acá tenés el README completo en un solo bloque, listo para copiar y pegar directamente en GitHub, sin separaciones entre secciones:
-
 # 📈 Stock Master
 
 **Stock Master** es una aplicación web intuitiva y dinámica que permite visualizar en tiempo real las tendencias de precios de acciones de empresas seleccionadas. Ofrece una experiencia fluida para seguir el mercado bursátil, ideal tanto para inversores ocasionales como para entusiastas financieros.
